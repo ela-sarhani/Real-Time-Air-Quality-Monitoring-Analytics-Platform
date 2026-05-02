@@ -17,7 +17,7 @@ while True:
         "timestamp": datetime.now(timezone.utc).isoformat()  # "2026-05-02T00:05:52+00:00"
     }
 
-    producer.send("iot-sensors", data)
+    producer.send("air-quality", data)
     print("Sent:", data)
 
     time.sleep(1)

@@ -51,3 +51,19 @@ services:
       - SERVICE_PRECONDITION=namenode:9870
     depends_on:
       - namenode
+  postgres:
+    image: postgres:14
+    container_name: airquality-db
+    environment:
+      POSTGRES_USER: spark
+      POSTGRES_PASSWORD: spark
+      POSTGRES_DB: airquality
+    ports:
+      - "5432:5432"
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres

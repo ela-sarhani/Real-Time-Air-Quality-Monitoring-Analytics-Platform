@@ -1,45 +1,49 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, when
-from pyspark.sql.types import StructType, StructField, IntegerType, DoubleType, TimestampType
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
 spark = SparkSession.builder \
-    .appName("AirQualityStreaming") \
-    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0") \
+    .appName("KafkaToPostgres") \
     .getOrCreate()
-
-spark.sparkContext.setLogLevel("WARN")
 
 schema = StructType([
     StructField("sensor_id", IntegerType()),
-    StructField("pm25", DoubleType()),
-    StructField("no2", DoubleType()),
-    StructField("timestamp", TimestampType())
+    StructField("pm25", FloatType()),
+    StructField("no2", FloatType()),
+    StructField("timestamp", StringType())
 ])
 
 df = spark.readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:29092") \
-    .option("subscribe", "iot-sensors") \
-    .option("startingOffsets", "latest") \
+    .option("subscribe", "air-quality") \
     .load()
 
-json_df = df.selectExpr("CAST(value AS STRING)") \
-    .select(from_json(col("value"), schema).alias("data")) \
-    .select("data.*")
+json_df = df.selectExpr("CAST(value AS STRING) as json")
 
-alerts = json_df.filter(
-    (col("pm25") > 25) | (col("no2") > 40)
-).withColumn(
-    "alert",
-    when(col("pm25") > 25, "PM2.5 HIGH")
-    .when(col("no2") > 40, "NO2 HIGH")
-    .otherwise("UNKNOWN")
+parsed_df = json_df.select(
+    from_json(col("json"), schema).alias("data")
+).select("data.*")
+
+parsed_df = parsed_df.withColumn(
+    "timestamp",
+    to_timestamp(col("timestamp"))
 )
+def write_to_postgres(batch_df, batch_id):
 
-query = alerts.writeStream \
+    batch_df.write \
+        .format("jdbc") \
+        .option("url", "jdbc:postgresql://postgres:5432/airquality") \
+        .option("dbtable", "sensor_data") \
+        .option("user", "spark") \
+        .option("password", "spark") \
+        .option("driver", "org.postgresql.Driver") \
+        .mode("append") \
+        .save()
+
+query = parsed_df.writeStream \
+    .foreachBatch(write_to_postgres) \
     .outputMode("append") \
-    .format("console") \
-    .option("truncate", False) \
     .start()
 
 query.awaitTermination()
