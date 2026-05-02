@@ -101,16 +101,16 @@ Check structure:
 Enter the Kafka container:
 
 ```bash
-docker exec -it $(docker ps -qf "ancestor=confluentinc/cp-kafka:7.4.0") bash
+docker exec -it real-time-air-quality-monitoring-analytics-platform_kafka_1 bash
 ```
 
-Create the `iot-sensors` topic:
+Create the `air-quality` topic:
 
 ```bash
 kafka-topics \
   --create \
-  --topic iot-sensors \
-  --bootstrap-server kafka:29092
+  --topic air-quality \
+  --bootstrap-server kafka:9092
 ```
 
 Confirm the topic was created:
@@ -134,7 +134,7 @@ Submit the streaming job:
 ```bash
 /opt/spark/bin/spark-submit \
   --master spark://spark-master:7077 \
-  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.postgresql:postgresql:42.7.3 \
   /opt/spark/work-dir/stream.py
 ```
 
@@ -142,7 +142,7 @@ Submit the streaming job:
 
 ### 5. Run the Kafka Producer
 
-On your **local machine**, start the sensor simulator:
+On your **local machine**, and inside the venv that has kafka-python, start the sensor simulator:
 
 ```bash
 python producer.py
