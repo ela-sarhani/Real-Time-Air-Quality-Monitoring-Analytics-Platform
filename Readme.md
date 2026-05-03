@@ -119,6 +119,10 @@ Confirm the topic was created:
 kafka-topics --list --bootstrap-server kafka:29092
 ```
 
+Consumer launch:
+```bash
+kafka-console-consumer --topic air-quality --from-beginning --bootstrap-server kafka:9092
+```
 ---
 
 ### 4. Run the Spark Streaming Job
@@ -127,6 +131,18 @@ Enter the Spark master container:
 
 ```bash
 docker exec -it spark-master bash
+```
+
+Copy the python spark job (stream.py) into the spark environment (from your host):
+
+```bash
+docker cp stream.py spark-master:/opt/spark/work-dir/
+```
+
+Back to the spark home (inside the spark-master container):
+
+```bash
+cd ./../../..
 ```
 
 Submit the streaming job:
