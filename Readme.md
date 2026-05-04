@@ -145,6 +145,19 @@ Back to the spark home (inside the spark-master container):
 cd ./../../..
 ```
 
+Run the namenode container:
+```bash
+docker exec -it namenode bash
+```
+
+Create the necessary folders and give permissions:
+```bash
+hdfs dfs -mkdir -p /data/airquality
+hdfs dfs -mkdir -p /checkpoints/airquality_pipeline
+hdfs dfs -chmod -R 777 /data
+hdfs dfs -chmod -R 777 /checkpoints 
+```
+
 Submit the streaming job:
 
 ```bash
@@ -253,13 +266,18 @@ Identify readings that exceed safe thresholds (PM2.5 > 50 or NO2 > 70).
 ```sql
 SELECT
   timestamp AS time,
-  sensor_id,
   pm25,
-  no2
+  no2,
+  CASE
+    WHEN pm25 > 50 AND no2 > 70 THEN 'PM2.5 + NO2 high'
+    WHEN pm25 > 50 THEN 'High PM2.5'
+    WHEN no2 > 70 THEN 'High NO2'
+    ELSE 'Normal'
+  END AS alert_cause
 FROM sensor_data
-WHERE (pm25 > 50 OR no2 > 70)
-  AND $__timeFilter(timestamp)
-ORDER BY timestamp DESC
+WHERE $__timeFilter(timestamp)
+  AND (pm25 > 50 OR no2 > 70)
+ORDER BY timestamp DESC;
 ```
 
 ---
