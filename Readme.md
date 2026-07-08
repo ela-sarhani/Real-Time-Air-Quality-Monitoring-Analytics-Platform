@@ -1,4 +1,4 @@
-# 🌍 Real-Time Air Quality Monitoring Platform
+# Real-Time Air Quality Monitoring Platform
 
 A full data engineering pipeline that simulates IoT air-quality sensors and processes streaming data in real time.
 
@@ -16,7 +16,7 @@ Python Producer (IoT Simulation)
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
@@ -25,7 +25,7 @@ Python Producer (IoT Simulation)
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 | Layer | Technology | Role |
 |-------|-----------|------|
@@ -51,7 +51,7 @@ pip install kafka-python
 
 ---
 
-## 🚀 Step-by-Step Run Guide
+## Step-by-Step Run Guide
 
 ### 1. Start All Containers
 
